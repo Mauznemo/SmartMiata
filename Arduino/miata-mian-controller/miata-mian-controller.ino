@@ -8,6 +8,7 @@ const int aButton2Pin = 7;
 
 const int leftDoorPin = 8;
 const int rightDoorPin = 9;
+const int trunkPin = 11;
 
 const int lightRelayPin = 10;
 
@@ -20,6 +21,7 @@ void setup() {
   pinMode(aButton2Pin, INPUT);
   pinMode(leftDoorPin, INPUT);
   pinMode(rightDoorPin, INPUT);
+  pinMode(trunkPin, INPUT);
   pinMode(powerRelayPin, OUTPUT);
   pinMode(lightRelayPin, OUTPUT);
 
@@ -30,6 +32,7 @@ void setup() {
   digitalWrite(aButton2Pin, HIGH);
   digitalWrite(leftDoorPin, HIGH);
   digitalWrite(rightDoorPin, HIGH);
+  digitalWrite(trunkPin, HIGH);
   Serial.begin(9600);
 }
 
@@ -40,32 +43,30 @@ void loop() {
   checkActionButton2();
   checkLeftDoor();
   checkRightDoor();
+  checkTrunk();
   checkPower();
-  
+
   if (Serial.available() > 0) {
     String data = Serial.readStringUntil('\n');
 
     if (data == "sd") {
       sendData();
-    } 
-    else if (data == "off") {
+    } else if (data == "off") {
       powerOff();
-    } 
-    else if (data == "le") {
+    } else if (data == "le") {
       setLight(true);
-    } 
-    else if (data == "ld") {
+    } else if (data == "ld") {
       setLight(false);
     }
   }
 }
 
 
-void setLight(bool active){
+void setLight(bool active) {
   digitalWrite(lightRelayPin, active);
 }
 
-void powerOff(){
+void powerOff() {
   delay(30000);
 
   digitalWrite(powerRelayPin, LOW);
@@ -77,12 +78,12 @@ bool lastReverseVal;
 bool lastLeftDoorVal;
 bool lastRightDoorVal;
 
-void sendData(){
+void sendData() {
   onLeftDoorChanged(lastLeftDoorVal);
   onRightDoorChanged(lastRightDoorVal);
   onReverseChanged(lastReverseVal);
 
-  if(!digitalRead(powerCheckPin)){
+  if (!digitalRead(powerCheckPin)) {
     Serial.println("off");
   }
 }
@@ -131,6 +132,15 @@ void checkRightDoor() {
   if (lastRightDoorVal != rightDoorVal) {
     lastRightDoorVal = rightDoorVal;
     onRightDoorChanged(rightDoorVal);
+  }
+}
+
+void checkTrunk() {
+  bool trunkVal = digitalRead(trunkPin);
+
+  if (lastTrunkVal != trunkVal) {
+    lastTrunkVal = trunkVal;
+    onTrunkChanged(trunkVal);
   }
 }
 
@@ -189,5 +199,13 @@ void onRightDoorChanged(bool val) {
     Serial.println("rdc");
   } else {
     Serial.println("rdo");
+  }
+}
+
+void onTrunkChanged(bool val) {
+  if (val) {
+    Serial.println("tc");
+  } else {
+    Serial.println("to");
   }
 }
