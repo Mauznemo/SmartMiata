@@ -77,6 +77,7 @@ bool lastAButton2Val;
 bool lastReverseVal;
 bool lastLeftDoorVal;
 bool lastRightDoorVal;
+bool lastTrunkVal;
 
 void sendData() {
   onLeftDoorChanged(lastLeftDoorVal);
