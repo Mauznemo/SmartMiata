@@ -68,11 +68,11 @@ void loop() {
       setLight(false);
     }
     else if(data.startsWith("ll_")){
-      String hexColor = data.substring(3);
+      String hexColor = data.substring(4);
       setLeftLedsColor(hexColor);
     }
     else if(data.startsWith("rl_")){
-      String hexColor = data.substring(3);
+      String hexColor = data.substring(4);
       setRightLedsColor(hexColor);
     }
   }
@@ -83,7 +83,7 @@ void setLeftLedsColor(String hexColor) {
   CRGB color = hexToCRGB(hexColor);
   
   // Set the first half of the LEDs to the color
-  for (int i = 0; i < NUM_LEDS / 2; i++) {
+  for (int i = 0; i < ledCount / 2; i++) {
     leds[i] = color;
   }
 
@@ -93,9 +93,11 @@ void setLeftLedsColor(String hexColor) {
 void setRightLedsColor(String hexColor) {
   // Convert hex string to CRGB
   CRGB color = hexToCRGB(hexColor);
+
+  //Serial.println(hexColor);
   
   // Set the second half of the LEDs to the color
-  for (int i = NUM_LEDS / 2; i < NUM_LEDS; i++) {
+  for (int i = ledCount / 2; i < ledCount; i++) {
     leds[i] = color;
   }
 
