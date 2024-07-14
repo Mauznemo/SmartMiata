@@ -1,3 +1,5 @@
+#include <FastLED.h>
+
 const int powerCheckPin = 3;
 const int powerRelayPin = 4;
 
@@ -10,11 +12,18 @@ const int leftDoorPin = 8;
 const int rightDoorPin = 9;
 const int trunkPin = 11;
 
+const int ledDataPin = 12;
+
 const int lightRelayPin = 10;
 
 bool lastSystemPower = true;
 
+const int ledCount = 56;
+CRGB leds[ledCount];
+
 void setup() {
+  FastLED.addLeds<NEOPIXEL, ledDataPin>(leds, ledCount);
+
   pinMode(powerCheckPin, INPUT);
   pinMode(reverseCheckPin, INPUT);
   pinMode(aButton1Pin, INPUT);
@@ -58,7 +67,47 @@ void loop() {
     } else if (data == "ld") {
       setLight(false);
     }
+    else if(data.startsWith("ll_")){
+      String hexColor = data.substring(3);
+      setLeftLedsColor(hexColor);
+    }
+    else if(data.startsWith("rl_")){
+      String hexColor = data.substring(3);
+      setRightLedsColor(hexColor);
+    }
   }
+}
+
+void setLeftLedsColor(String hexColor) {
+  // Convert hex string to CRGB
+  CRGB color = hexToCRGB(hexColor);
+  
+  // Set the first half of the LEDs to the color
+  for (int i = 0; i < NUM_LEDS / 2; i++) {
+    leds[i] = color;
+  }
+
+  FastLED.show();
+}
+
+void setRightLedsColor(String hexColor) {
+  // Convert hex string to CRGB
+  CRGB color = hexToCRGB(hexColor);
+  
+  // Set the second half of the LEDs to the color
+  for (int i = NUM_LEDS / 2; i < NUM_LEDS; i++) {
+    leds[i] = color;
+  }
+
+  FastLED.show();
+}
+
+CRGB hexToCRGB(String hexColor) {
+  long number = strtol(&hexColor[0], NULL, 16);
+  byte red = (number >> 16) & 0xFF;
+  byte green = (number >> 8) & 0xFF;
+  byte blue = number & 0xFF;
+  return CRGB(red, green, blue);
 }
 
 
