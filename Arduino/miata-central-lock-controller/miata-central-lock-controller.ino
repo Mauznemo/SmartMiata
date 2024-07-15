@@ -1,12 +1,13 @@
-const int trunkUnlockPin = 0;
-const int doorUnlockPin = 1;
-const int doorLockPin = 2;
+const int trunkUnlockPin = 2;
+const int doorLockPin = 3;
+const int doorUnlockPin = 4;
 
-const int doorsRelayPin1 = 3;
-const int doorsRelayPin2 = 4;
-const int trunkRelayPin1 = 5;
+const int doorsRelayPin1 = 5;
+const int doorsRelayPin2 = 6;
+const int trunkRelayPin1 = 7;
+const int wakePin = 8;
 
-const int motorTimeMs = 500;
+const int motorTimeMs = 50;
 const int blockTimeMs = 1500;
 
 void setup() {
@@ -14,9 +15,19 @@ void setup() {
   pinMode(doorUnlockPin, INPUT);
   pinMode(doorLockPin, INPUT);
 
+  digitalWrite(trunkUnlockPin, HIGH);
+  digitalWrite(doorUnlockPin, HIGH);
+  digitalWrite(doorLockPin, HIGH);
+
   pinMode(doorsRelayPin1, OUTPUT);
   pinMode(doorsRelayPin2, OUTPUT);
   pinMode(trunkRelayPin1, OUTPUT);
+
+  pinMode(wakePin, OUTPUT);
+
+  digitalWrite(doorsRelayPin1, HIGH);
+  digitalWrite(doorsRelayPin2, HIGH);
+  digitalWrite(trunkRelayPin1, HIGH);
 
   Serial.begin(9600);
 }
@@ -29,41 +40,41 @@ void loop() {
 }
 
 void unlockTrunk(){
-  digitalWrite(trunkRelayPin1, HIGH);
+  digitalWrite(trunkRelayPin1, LOW);
 
   delay(motorTimeMs);
 
-  digitalWrite(trunkRelayPin1, LOW);
+  digitalWrite(trunkRelayPin1, HIGH);
 
-  Serial.println("ut");
+  Serial.println("Unlocked Trunk");
 
   delay(blockTimeMs);
 }
 
 void unlockDoors(){
-  digitalWrite(doorsRelayPin1, HIGH);
-  digitalWrite(doorsRelayPin2, LOW);
-
-  delay(motorTimeMs);
-
-  digitalWrite(doorsRelayPin1, LOW);
-  digitalWrite(doorsRelayPin2, LOW);
-
-  Serial.println("ud");
-
-  delay(blockTimeMs);
-}
-
-void lockDoors(){
   digitalWrite(doorsRelayPin1, LOW);
   digitalWrite(doorsRelayPin2, HIGH);
 
   delay(motorTimeMs);
 
-  digitalWrite(doorsRelayPin1, LOW);
+  digitalWrite(doorsRelayPin1, HIGH);
+  digitalWrite(doorsRelayPin2, HIGH);
+
+  Serial.println("Unlocked doors");
+
+  delay(blockTimeMs);
+}
+
+void lockDoors(){
+  digitalWrite(doorsRelayPin1, HIGH);
   digitalWrite(doorsRelayPin2, LOW);
 
-  Serial.println("ld");
+  delay(motorTimeMs);
+
+  digitalWrite(doorsRelayPin1, HIGH);
+  digitalWrite(doorsRelayPin2, HIGH);
+
+  Serial.println("Locked doors");
 
   delay(blockTimeMs);
 }
