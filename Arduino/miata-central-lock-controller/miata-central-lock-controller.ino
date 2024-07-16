@@ -25,28 +25,28 @@ void setup() {
 
   pinMode(wakePin, OUTPUT);
 
-  //digitalWrite(doorsRelayPin1, HIGH);
-  //digitalWrite(doorsRelayPin2, HIGH);
-  //digitalWrite(trunkRelayPin1, HIGH);
+  digitalWrite(doorsRelayPin1, HIGH);
+  digitalWrite(doorsRelayPin2, HIGH);
+  digitalWrite(trunkRelayPin1, HIGH);
 
   Serial.begin(9600);
 }
 
 void loop() {
-  //checkTrunkUnlockPin();
-  //checkDoorUnlockPin();
-  //checkDoorLockPin();
+  checkTrunkUnlockPin();
+  checkDoorUnlockPin();
+  checkDoorLockPin();
   checkSerial();
 }
 
 void unlockTrunk(){
-  digitalWrite(trunkRelayPin1, HIGH);
+  digitalWrite(trunkRelayPin1, LOW);
 
   delay(motorTimeMs);
 
-  digitalWrite(trunkRelayPin1, LOW);
+  digitalWrite(trunkRelayPin1, HIGH);
 
-  Serial.println("Unlocked Trunk");
+  Serial.println("ut");
 
   delay(blockTimeMs);
 }
@@ -60,9 +60,20 @@ void unlockDoors(){
   digitalWrite(doorsRelayPin1, HIGH);
   digitalWrite(doorsRelayPin2, HIGH);
 
-  Serial.println("Unlocked doors");
+  Serial.println("ud");
+
+  wakeUpSystem();
 
   delay(blockTimeMs);
+}
+
+void wakeUpSystem()
+{
+  digitalWrite(wakePin, HIGH);
+
+  delay(2000);
+
+  digitalWrite(wakePin, LOW);
 }
 
 void lockDoors(){
@@ -74,7 +85,7 @@ void lockDoors(){
   digitalWrite(doorsRelayPin1, HIGH);
   digitalWrite(doorsRelayPin2, HIGH);
 
-  Serial.println("Locked doors");
+  Serial.println("ld");
 
   delay(blockTimeMs);
 }
@@ -126,7 +137,7 @@ void checkDoorLockPin() {
 
 
 void onTrunkUnlockChanged(bool val){
-  if(val){
+  if(!val){
     unlockTrunk();
   }
 }
