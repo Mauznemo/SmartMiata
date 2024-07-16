@@ -25,26 +25,26 @@ void setup() {
 
   pinMode(wakePin, OUTPUT);
 
-  digitalWrite(doorsRelayPin1, HIGH);
-  digitalWrite(doorsRelayPin2, HIGH);
-  digitalWrite(trunkRelayPin1, HIGH);
+  //digitalWrite(doorsRelayPin1, HIGH);
+  //digitalWrite(doorsRelayPin2, HIGH);
+  //digitalWrite(trunkRelayPin1, HIGH);
 
   Serial.begin(9600);
 }
 
 void loop() {
-  checkTrunkUnlockPin();
-  checkDoorUnlockPin();
-  checkDoorLockPin();
+  //checkTrunkUnlockPin();
+  //checkDoorUnlockPin();
+  //checkDoorLockPin();
   checkSerial();
 }
 
 void unlockTrunk(){
-  digitalWrite(trunkRelayPin1, LOW);
+  digitalWrite(trunkRelayPin1, HIGH);
 
   delay(motorTimeMs);
 
-  digitalWrite(trunkRelayPin1, HIGH);
+  digitalWrite(trunkRelayPin1, LOW);
 
   Serial.println("Unlocked Trunk");
 
