@@ -78,7 +78,7 @@ void loop() {
   }
 }
 
-void setLeftLedsColor(String hexColor) {
+void setRightLedsColor(String hexColor) {
   // Convert hex string to CRGB
   CRGB color = hexToCRGB(hexColor);
   
@@ -90,7 +90,7 @@ void setLeftLedsColor(String hexColor) {
   FastLED.show();
 }
 
-void setRightLedsColor(String hexColor) {
+void setLeftLedsColor(String hexColor) {
   // Convert hex string to CRGB
   CRGB color = hexToCRGB(hexColor);
 
@@ -133,6 +133,7 @@ bool lastTrunkVal;
 void sendData() {
   onLeftDoorChanged(lastLeftDoorVal);
   onRightDoorChanged(lastRightDoorVal);
+  onTrunkChanged(lastTrunkVal);
   onReverseChanged(lastReverseVal);
 
   if (!digitalRead(powerCheckPin)) {
@@ -256,8 +257,8 @@ void onRightDoorChanged(bool val) {
 
 void onTrunkChanged(bool val) {
   if (val) {
-    Serial.println("tc");
-  } else {
     Serial.println("to");
+  } else {
+    Serial.println("tc");
   }
 }
