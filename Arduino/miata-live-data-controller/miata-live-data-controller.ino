@@ -62,13 +62,11 @@ void loop() {
   //float angle = (1080 / 971.85) * (potValue + 51.15); //1080 (totalAngle) / 972 * (potValue + 25 (offset))
   stWheelAngle = fmap(potValue, 51, 972, -540.0, 540.0);
   
-  if (changed()) {
-    Serial.print(rpm);
-    Serial.print("_");
-    Serial.print(speedKmH);
-    Serial.print("_");
-    Serial.println(stWheelAngle);
-  }
+  Serial.print(rpm);
+  Serial.print("_");
+  Serial.print(speedKmH);
+  Serial.print("_");
+  Serial.println(stWheelAngle);
 }
 
 float fmap(float x, float in_min, float in_max, float out_min, float out_max)
@@ -104,20 +102,4 @@ void sendTimeAndDate() {
 
   // Send JSON string over Serial
   Serial.println(jsonString);
-}
-
-float lastRpm;
-float lastSpeed;
-float lastStWheelAngle;
-
-bool changed() {
-  if (lastRpm != rpm || lastSpeed != speedKmH || lastStWheelAngle != stWheelAngle) {
-    lastRpm = rpm;
-    lastSpeed = speedKmH;
-    lastStWheelAngle = stWheelAngle;
-
-    return true;
-  }
-
-  return false;
 }
