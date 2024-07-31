@@ -90,6 +90,10 @@ void loop()
     {
       down();
     }
+    else if (data == "up")
+    {
+      up();
+    }
     else if (data == "am")
     {
       allowModifyingLightsWhileOn = true;
