@@ -1,3 +1,14 @@
+#include <SoftwareSerial.h>
+
+#define RX_PIN 10
+#define TX_PIN 11
+
+SoftwareSerial bleSerial(RX_PIN, TX_PIN);
+
+String receivedData = "";
+bool autoLocking;
+bool doorsLocked = true;
+
 const int trunkUnlockPin = 2;
 const int doorLockPin = 3;
 const int doorUnlockPin = 4;
@@ -30,6 +41,15 @@ void setup() {
   digitalWrite(trunkRelayPin1, HIGH);
 
   Serial.begin(9600);
+
+  bleSerial.begin(9600);
+
+  // Give some time for the HM-10 to initialize
+  delay(1000);
+
+  bleSerial.print("AT+NOTI1");
+
+  delay(500);
 }
 
 void loop() {
@@ -37,6 +57,54 @@ void loop() {
   checkDoorUnlockPin();
   checkDoorLockPin();
   checkSerial();
+  checkBle();
+}
+
+void checkBle(){
+  if (bleSerial.available()) {
+    // Read the data from the BLE module
+    char incomingChar = bleSerial.read();
+     if (isPrintable(incomingChar)) {
+        receivedData += incomingChar;
+    }
+    
+    //Serial.println(incomingChar);
+
+    if (receivedData.indexOf("OK+CONN") != -1) {
+      receivedData = "";
+    }
+    else if (receivedData.indexOf("OK+LOST") != -1) {
+      if(autoLocking){
+        //Lock the car
+        lockDoors();
+      }
+      autoLocking = false;
+      receivedData = "";
+    }
+
+    // If the data ends with a newline character, process it
+    if (incomingChar == '\n') {
+      receivedData.trim();
+      if (receivedData == "ds") {
+        bleSerial.println(doorsLocked ? "ld" : "ud");
+      } else if (receivedData == "ld") {
+        bleSerial.println("ld");
+        lockDoors();
+      } else if (receivedData == "ud") {
+        bleSerial.println("ud");
+        unlockDoors();
+      } else if (receivedData == "ut") {
+        unlockTrunk();
+      } else if (receivedData == "al") {
+        autoLocking = true;
+      } else if (receivedData == "ald") {
+        autoLocking = false;
+      }
+
+      receivedData = "";
+    }
+  }
+
 }
 
 void unlockTrunk(){
@@ -61,8 +129,8 @@ void unlockDoors(){
   digitalWrite(doorsRelayPin2, HIGH);
 
   Serial.println("ud");
-
-  wakeUpSystem();
+  doorsLocked = false;
+  //wakeUpSystem();
 
   delay(blockTimeMs);
 }
@@ -86,6 +154,7 @@ void lockDoors(){
   digitalWrite(doorsRelayPin2, HIGH);
 
   Serial.println("ld");
+  doorsLocked = true;
 
   delay(blockTimeMs);
 }
