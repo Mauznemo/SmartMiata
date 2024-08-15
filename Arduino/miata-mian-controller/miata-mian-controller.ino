@@ -21,6 +21,10 @@ bool lastSystemPower = true;
 const int ledCount = 56;
 CRGB leds[ledCount];
 
+const int batterySensorPin = A0;
+unsigned long lastDateSentTime = 0;
+const unsigned long sendDateInterval = 7000;
+
 void setup() {
   FastLED.addLeds<NEOPIXEL, ledDataPin>(leds, ledCount);
 
@@ -54,6 +58,8 @@ void loop() {
   checkRightDoor();
   checkTrunk();
   checkPower();
+  checkBattery();
+
 
   if (Serial.available() > 0) {
     String data = Serial.readStringUntil('\n');
@@ -141,7 +147,19 @@ void sendData() {
   }
 }
 
+void checkBattery()
+{
+  unsigned long currentTime = millis();
 
+  if (currentTime - lastDateSentTime >= sendDateInterval) {
+    int sensorValue = analogRead(batterySensorPin);
+    float voltage = sensorValue * (5.0 / 1023.0) * 3.0;
+    Serial.print("v_");
+    Serial.println(voltage);
+    lastDateSentTime = currentTime;
+    return;
+  }
+}
 
 void checkReverse() {
   bool reverseVal = digitalRead(reverseCheckPin);
