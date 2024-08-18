@@ -97,6 +97,10 @@ void checkBle(){
         unlockTrunk();
       } else if (receivedData == "al") {
         autoLocking = true;
+        if(doorsLocked)
+        {
+          unlockDoors();
+        }
       } else if (receivedData == "ald") {
         autoLocking = false;
       }
