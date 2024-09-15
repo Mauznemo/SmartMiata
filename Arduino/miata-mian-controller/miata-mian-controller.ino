@@ -16,6 +16,10 @@ const int ledDataPin = 12;
 
 const int lightRelayPin = 10;
 
+const int rotaryPinA = 13;
+const int rotaryPinB = 14;
+const int rotaryButtonPin = 15;
+
 bool lastSystemPower = true;
 
 const int ledCount = 56;
@@ -24,6 +28,15 @@ CRGB leds[ledCount];
 const int batterySensorPin = A0;
 unsigned long lastDateSentTime = 0;
 const unsigned long sendDateInterval = 7000;
+
+bool lastAButton1Val;
+bool lastAButton2Val;
+bool lastReverseVal;
+bool lastLeftDoorVal;
+bool lastRightDoorVal;
+bool lastTrunkVal;
+bool lastRotaryVal;
+bool lastRotaryButtonVal;
 
 void setup() {
   FastLED.addLeds<NEOPIXEL, ledDataPin>(leds, ledCount);
@@ -37,6 +50,9 @@ void setup() {
   pinMode(trunkPin, INPUT);
   pinMode(powerRelayPin, OUTPUT);
   pinMode(lightRelayPin, OUTPUT);
+  pinMode(rotaryPinA, INPUT);
+  pinMode(rotaryPinB, INPUT);
+  pinMode(rotaryButtonPin, INPUT);
 
   digitalWrite(powerRelayPin, HIGH);
   digitalWrite(lightRelayPin, LOW);
@@ -46,7 +62,10 @@ void setup() {
   digitalWrite(leftDoorPin, HIGH);
   digitalWrite(rightDoorPin, HIGH);
   digitalWrite(trunkPin, HIGH);
+  digitalWrite(rotaryButtonPin, HIGH);
   Serial.begin(9600);
+
+  lastRotaryVal = digitalRead(rotaryPinA);
 }
 
 void loop() {
@@ -59,6 +78,8 @@ void loop() {
   checkTrunk();
   checkPower();
   checkBattery();
+  checkRotary();
+  checkRotaryButton();
 
 
   if (Serial.available() > 0) {
@@ -72,12 +93,10 @@ void loop() {
       setLight(true);
     } else if (data == "ld") {
       setLight(false);
-    }
-    else if(data.startsWith("ll_")){
+    } else if (data.startsWith("ll_")) {
       String hexColor = data.substring(4);
       setLeftLedsColor(hexColor);
-    }
-    else if(data.startsWith("rl_")){
+    } else if (data.startsWith("rl_")) {
       String hexColor = data.substring(4);
       setRightLedsColor(hexColor);
     }
@@ -87,7 +106,7 @@ void loop() {
 void setRightLedsColor(String hexColor) {
   // Convert hex string to CRGB
   CRGB color = hexToCRGB(hexColor);
-  
+
   // Set the first half of the LEDs to the color
   for (int i = 0; i < ledCount / 2; i++) {
     leds[i] = color;
@@ -101,7 +120,7 @@ void setLeftLedsColor(String hexColor) {
   CRGB color = hexToCRGB(hexColor);
 
   //Serial.println(hexColor);
-  
+
   // Set the second half of the LEDs to the color
   for (int i = ledCount / 2; i < ledCount; i++) {
     leds[i] = color;
@@ -129,13 +148,6 @@ void powerOff() {
   digitalWrite(powerRelayPin, LOW);
 }
 
-bool lastAButton1Val;
-bool lastAButton2Val;
-bool lastReverseVal;
-bool lastLeftDoorVal;
-bool lastRightDoorVal;
-bool lastTrunkVal;
-
 void sendData() {
   onLeftDoorChanged(lastLeftDoorVal);
   onRightDoorChanged(lastRightDoorVal);
@@ -147,8 +159,7 @@ void sendData() {
   }
 }
 
-void checkBattery()
-{
+void checkBattery() {
   unsigned long currentTime = millis();
 
   if (currentTime - lastDateSentTime >= sendDateInterval) {
@@ -158,6 +169,27 @@ void checkBattery()
     Serial.println(voltage);
     lastDateSentTime = currentTime;
     return;
+  }
+}
+
+void checkRotary() {
+  bool rotaryVal = digitalRead(rotaryPinA);
+   if (rotaryVal != lastRotaryVal){     
+     if (digitalRead(rotaryPinB) != rotaryVal) { 
+       Serial.println("cwu");
+     } else {
+       Serial.println("cwd");
+     }
+   } 
+   lastRotaryVal = rotaryVal;
+}
+
+void checkRotaryButton() {
+  bool buttonVal = digitalRead(rotaryButtonPin);
+
+  if (lastRotaryButtonVal != buttonVal) {
+    lastRotaryButtonVal = buttonVal;
+    onRotaryButtonChanged(buttonVal);
   }
 }
 
@@ -237,6 +269,14 @@ void onReverseChanged(bool val) {
     Serial.println("re");
   } else {
     Serial.println("rd");
+  }
+}
+
+void onRotaryButtonChanged(bool val) {
+  if (val) {
+    Serial.println("cwbu");
+  } else {
+    Serial.println("cwbd");
   }
 }
 
