@@ -1,4 +1,5 @@
 #include <FastLED.h>
+#include <Encoder.h>
 
 const int powerCheckPin = 3;
 const int powerRelayPin = 4;
@@ -16,9 +17,9 @@ const int ledDataPin = 12;
 
 const int lightRelayPin = 10;
 
-const int rotaryPinA = 13;
-const int rotaryPinB = 14;
-const int rotaryButtonPin = 15;
+Encoder rotaryEncoder(14, 15);
+long oldRotaryPosition = -999;
+const int rotaryButtonPin = 16;
 
 bool lastSystemPower = true;
 
@@ -35,7 +36,6 @@ bool lastReverseVal;
 bool lastLeftDoorVal;
 bool lastRightDoorVal;
 bool lastTrunkVal;
-bool lastRotaryVal;
 bool lastRotaryButtonVal;
 
 void setup() {
@@ -50,8 +50,6 @@ void setup() {
   pinMode(trunkPin, INPUT);
   pinMode(powerRelayPin, OUTPUT);
   pinMode(lightRelayPin, OUTPUT);
-  pinMode(rotaryPinA, INPUT);
-  pinMode(rotaryPinB, INPUT);
   pinMode(rotaryButtonPin, INPUT);
 
   digitalWrite(powerRelayPin, HIGH);
@@ -64,8 +62,6 @@ void setup() {
   digitalWrite(trunkPin, HIGH);
   digitalWrite(rotaryButtonPin, HIGH);
   Serial.begin(9600);
-
-  lastRotaryVal = digitalRead(rotaryPinA);
 }
 
 void loop() {
@@ -173,15 +169,15 @@ void checkBattery() {
 }
 
 void checkRotary() {
-  bool rotaryVal = digitalRead(rotaryPinA);
-   if (rotaryVal != lastRotaryVal){     
-     if (digitalRead(rotaryPinB) != rotaryVal) { 
-       Serial.println("cwu");
-     } else {
-       Serial.println("cwd");
-     }
-   } 
-   lastRotaryVal = rotaryVal;
+  long newPosition = rotaryEncoder.read();
+
+  if (newPosition > oldRotaryPosition && (newPosition - oldRotaryPosition) >= 2) {
+    Serial.println("cwd");
+    oldRotaryPosition = newPosition;
+  } else if (newPosition < oldRotaryPosition && (oldRotaryPosition - newPosition) >= 2) {
+    Serial.println("cwu");
+    oldRotaryPosition = newPosition;
+  }
 }
 
 void checkRotaryButton() {
