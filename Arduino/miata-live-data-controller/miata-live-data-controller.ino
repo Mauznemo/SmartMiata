@@ -37,7 +37,7 @@ void loop() {
   while (ss.available() > 0)
     gps.encode(ss.read());
 
-  if (gps.speed.isUpdated()) {
+  if (gps.speed.isValid()) {
     speedKmH = gps.speed.kmph();
   }
 
