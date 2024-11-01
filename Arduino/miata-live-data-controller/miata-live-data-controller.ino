@@ -22,12 +22,12 @@ float stWheelAngle;  //-540 - 540 (1080°) 1.11° precision > 0.07° precision o
 unsigned long lastDateSentTime = 0;
 const unsigned long sendDateInterval = 7000;
 
-volatile unsigned long pulseCount = 0;
-unsigned long previousMillis = 0;
+volatile unsigned long lastPulseTime = 0;
+volatile unsigned long pulseInterval = 0;
 
 void setup() {
   pinMode(rpmPin, INPUT);
-  attachInterrupt(digitalPinToInterrupt(rpmPin), countPulse, RISING);
+  attachInterrupt(digitalPinToInterrupt(rpmPin), onPulse, RISING);
 
   Serial.begin(9600);
   ss.begin(GPSBaud);
@@ -49,20 +49,11 @@ void loop() {
     return;
   }
 
-  if (currentTime - previousMillis >= 200) {
-    //detachInterrupt(digitalPinToInterrupt(rpmPin)); // Disable interrupts while calculating RPM
-    rpm = (float)pulseCount / 7.00;  // Calculate RPM
-    pulseCount = 0;                  // Reset pulse count
-
-    //attachInterrupt(digitalPinToInterrupt(rpmPin), countPulse, RISING); // Re-attach interrupt
-    previousMillis = currentTime;
-  }
-
   int potValue = analogRead(steerPin); //10 rotations: 0 - 1023, 1 rotation play: 0 - 920.7 (51.15 - 971.85)
   //float angle = (1080 / 971.85) * (potValue + 51.15); //1080 (totalAngle) / 972 * (potValue + 25 (offset))
   stWheelAngle = fmap(potValue, 51, 972, -540.0, 540.0);
   
-  Serial.print(rpm);
+  Serial.print(rpm, 0);
   Serial.print("_");
   Serial.print(speedKmH);
   Serial.print("_");
@@ -74,8 +65,15 @@ float fmap(float x, float in_min, float in_max, float out_min, float out_max)
  return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
 
-void countPulse() {
-  pulseCount++;
+void onPulse() {
+  unsigned long currentTime = micros();  // Current time in microseconds
+  pulseInterval = currentTime - lastPulseTime;  // Time between this and last pulse
+  lastPulseTime = currentTime;
+
+  // Calculate RPM
+  if (pulseInterval > 0) { // Prevent division by zero
+    rpm = (1000000.0 / pulseInterval) * 60.0 / 2.0;
+  }
 }
 
 void sendTimeAndDate() {
