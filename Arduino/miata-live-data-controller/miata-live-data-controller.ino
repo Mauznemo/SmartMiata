@@ -49,10 +49,12 @@ void loop() {
     return;
   }
 
+  checkForPulses();
+
   int potValue = analogRead(steerPin); //10 rotations: 0 - 1023, 1 rotation play: 0 - 920.7 (51.15 - 971.85)
   //float angle = (1080 / 971.85) * (potValue + 51.15); //1080 (totalAngle) / 972 * (potValue + 25 (offset))
   stWheelAngle = fmap(potValue, 51, 972, -540.0, 540.0);
-  
+
   Serial.print(rpm, 0);
   Serial.print("_");
   Serial.print(speedKmH);
@@ -63,6 +65,15 @@ void loop() {
 float fmap(float x, float in_min, float in_max, float out_min, float out_max)
 {
  return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+}
+
+void checkForPulses() {
+  unsigned long currentTime = micros();  // Current time in microseconds
+  unsigned long pulseInterval = currentTime - lastPulseTime;
+
+  if(pulseInterval > 1000000) { //No pulse for over 1 sec reset
+    rpm = 0;
+  }
 }
 
 void onPulse() {
