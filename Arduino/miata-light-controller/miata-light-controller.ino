@@ -1,7 +1,8 @@
 #include <EEPROM.h>
 
 #define buttonPin 3 // analog input pin to use as a digital input
-#define lightCheckPin 2
+#define drlCheckPin 2
+#define lightCheckPin 4
 #define leftup 11   // digital output pin for left headlight up
 #define rightup 6   // digital output pin for right headlight up
 #define leftdown 12 // digital output pin for left headlight down
@@ -16,9 +17,11 @@ bool ledVal = false; // state of headlight power
 
 bool waving;
 
-bool lightsOn;
+bool drlOn;
+bool lightOn;
 
-bool lastLightsVal;
+bool lastDrlVal;
+bool lastLightVal;
 bool lastButtonVal;
 
 bool allowModifyingLightsWhileOn = false;
@@ -28,6 +31,7 @@ void setup()
   Serial.begin(9600);
   // Set button input pin
   pinMode(buttonPin, INPUT);
+  pinMode(drlCheckPin, INPUT);
   pinMode(lightCheckPin, INPUT);
   digitalWrite(buttonPin, HIGH);
 
@@ -56,7 +60,8 @@ void loop()
     toggle();
   }
 
-  lightsOn = checkLights();
+  drlOn = checkDRL();
+  lightOn = checkLight();
 
   if (Serial.available() > 0)
   {
@@ -116,7 +121,7 @@ void loop()
 void toggleWaveing()
 {
 
-  if (lightsOn)
+  if (lightOn)
   {
     Serial.println("el");
     if (!allowModifyingLightsWhileOn)
@@ -195,7 +200,7 @@ void toggle()
 {
   stopWaving();
 
-  if (lightsOn)
+  if (lightOn)
   {
     Serial.println("el");
     if (!allowModifyingLightsWhileOn)
@@ -225,7 +230,7 @@ void toggleSleepy()
 {
   stopWaving();
 
-  if (lightsOn)
+  if (lightOn)
   {
     Serial.println("el");
     if (!allowModifyingLightsWhileOn)
@@ -252,7 +257,7 @@ void toggleSleepy()
 
 void wave()
 {
-  if (lightsOn)
+  if (lightOn)
   {
     return;
   }
@@ -278,7 +283,7 @@ void down()
 {
   stopWaving();
 
-  if (lightsOn)
+  if (lightOn)
   {
     Serial.println("el");
     if (!allowModifyingLightsWhileOn)
@@ -416,18 +421,41 @@ bool checkButton()
   return false;
 }
 
-bool checkLights()
+bool checkDRL()
 {
-  // return false; //remove later
+  bool drlVal = digitalRead(drlCheckPin);
 
-  bool lightsVal = digitalRead(lightCheckPin);
-
-  if (lastLightsVal != lightsVal)
+  if (lastDrlVal != drlVal)
   {
-    lastLightsVal = lightsVal;
-    onLightStateChanged(lightsVal);
+    lastDrlVal = drlVal;
+    onDrlStateChanged(drlVal);
   }
-  return lightsVal;
+  return drlVal;
+}
+
+bool checkLight()
+{
+  bool lightVal = !digitalRead(drlCheckPin); //Input is inverted
+
+  if (lastLightVal != lightVal)
+  {
+    lastLightVal = lightVal;
+    onLightStateChanged(lightVal);
+  }
+  return lightVal;
+}
+
+void onDrlStateChanged(bool val)
+{
+  if (val)
+  {
+    up();
+    Serial.println("drle");
+  }
+  else
+  {
+    Serial.println("drld");
+  }
 }
 
 void onLightStateChanged(bool val)
@@ -442,3 +470,4 @@ void onLightStateChanged(bool val)
     Serial.println("lid");
   }
 }
+
