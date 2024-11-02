@@ -12,6 +12,8 @@
 #define rightStateAddr 1
 #define valAddr 2
 
+const unsigned long DEBOUNCE_DELAY = 100;  // Debounce time in milliseconds
+
 // power variable
 bool ledVal = false; // state of headlight power
 
@@ -23,6 +25,8 @@ bool lightOn;
 bool lastDrlVal;
 bool lastLightVal;
 bool lastButtonVal;
+bool lastStableButtonState = false;
+unsigned long lastDebounceTime = 0;
 
 bool allowModifyingLightsWhileOn = false;
 
@@ -409,16 +413,27 @@ void sendLeftSleepyPos(bool leftUp)
   }
 }
 
-bool checkButton()
-{
+bool checkButton() {
   bool buttonVal = digitalRead(buttonPin);
-  if (lastButtonVal != buttonVal)
-  {
-    lastButtonVal = buttonVal;
-    return true;
+  bool stateChanged = false;
+  
+  // If the button state changed
+  if (buttonVal != lastButtonVal) {
+    // Reset the debounce timer
+    lastDebounceTime = millis();
   }
-
-  return false;
+  
+  // Check if enough time has passed since the last state change
+  if ((millis() - lastDebounceTime) > DEBOUNCE_DELAY) {
+    // If the button state is different from the last stable state
+    if (buttonVal != lastStableButtonState) {
+      lastStableButtonState = buttonVal;
+      stateChanged = true;
+    }
+  }
+  
+  lastButtonVal = buttonVal;
+  return stateChanged;
 }
 
 bool checkDRL()
