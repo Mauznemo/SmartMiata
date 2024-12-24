@@ -21,7 +21,8 @@ const int wakePin = 8;
 const int motorTimeMs = 50;
 const int blockTimeMs = 1500;
 
-void setup() {
+void setup()
+{
   pinMode(trunkUnlockPin, INPUT);
   pinMode(doorUnlockPin, INPUT);
   pinMode(doorLockPin, INPUT);
@@ -36,9 +37,9 @@ void setup() {
 
   pinMode(wakePin, OUTPUT);
 
-  digitalWrite(doorsRelayPin1, HIGH);
-  digitalWrite(doorsRelayPin2, HIGH);
-  digitalWrite(trunkRelayPin1, HIGH);
+  digitalWrite(doorsRelayPin1, LOW);
+  digitalWrite(doorsRelayPin2, LOW);
+  digitalWrite(trunkRelayPin1, LOW);
 
   Serial.begin(9600);
 
@@ -52,7 +53,8 @@ void setup() {
   delay(500);
 }
 
-void loop() {
+void loop()
+{
   checkTrunkUnlockPin();
   checkDoorUnlockPin();
   checkDoorLockPin();
@@ -60,22 +62,28 @@ void loop() {
   checkBle();
 }
 
-void checkBle(){
-  if (bleSerial.available()) {
+void checkBle()
+{
+  if (bleSerial.available())
+  {
     // Read the data from the BLE module
     char incomingChar = bleSerial.read();
-     if (isPrintable(incomingChar)) {
-        receivedData += incomingChar;
+    if (isPrintable(incomingChar))
+    {
+      receivedData += incomingChar;
     }
-    
-    //Serial.println(incomingChar);
 
-    if (receivedData.indexOf("OK+CONN") != -1) {
+    // Serial.println(incomingChar);
+
+    if (receivedData.indexOf("OK+CONN") != -1)
+    {
       receivedData = "";
     }
-    else if (receivedData.indexOf("OK+LOST") != -1) {
-      if(autoLocking){
-        //Lock the car
+    else if (receivedData.indexOf("OK+LOST") != -1)
+    {
+      if (autoLocking)
+      {
+        // Lock the car
         lockDoors();
       }
       autoLocking = false;
@@ -83,58 +91,71 @@ void checkBle(){
     }
 
     // If the data ends with a newline character, process it
-    if (incomingChar == '\n') {
+    if (incomingChar == '\n')
+    {
       receivedData.trim();
-      if (receivedData == "ds") {
+      if (receivedData == "ds")
+      {
         bleSerial.println(doorsLocked ? "ld" : "ud");
-      } else if (receivedData == "ld") {
+      }
+      else if (receivedData == "ld")
+      {
         bleSerial.println("ld");
         lockDoors();
-      } else if (receivedData == "ud") {
+      }
+      else if (receivedData == "ud")
+      {
         bleSerial.println("ud");
         unlockDoors();
-      } else if (receivedData == "ut") {
+      }
+      else if (receivedData == "ut")
+      {
         unlockTrunk();
-      } else if (receivedData == "al") {
+      }
+      else if (receivedData == "al")
+      {
         autoLocking = true;
-        if(doorsLocked)
+        if (doorsLocked)
         {
           unlockDoors();
         }
-      } else if (receivedData == "ald") {
+      }
+      else if (receivedData == "ald")
+      {
         autoLocking = false;
       }
 
       receivedData = "";
     }
   }
-
 }
 
-void unlockTrunk(){
-  digitalWrite(trunkRelayPin1, LOW);
+void unlockTrunk()
+{
+  digitalWrite(trunkRelayPin1, HIGH);
 
   delay(motorTimeMs);
 
-  digitalWrite(trunkRelayPin1, HIGH);
+  digitalWrite(trunkRelayPin1, LOW);
 
   Serial.println("ut");
 
   delay(blockTimeMs);
 }
 
-void unlockDoors(){
-  digitalWrite(doorsRelayPin1, LOW);
-  digitalWrite(doorsRelayPin2, HIGH);
+void unlockDoors()
+{
+  digitalWrite(doorsRelayPin1, HIGH);
+  digitalWrite(doorsRelayPin2, LOW);
 
   delay(motorTimeMs);
 
-  digitalWrite(doorsRelayPin1, HIGH);
-  digitalWrite(doorsRelayPin2, HIGH);
+  digitalWrite(doorsRelayPin1, LOW);
+  digitalWrite(doorsRelayPin2, LOW);
 
   Serial.println("ud");
   doorsLocked = false;
-  //wakeUpSystem();
+  // wakeUpSystem();
 
   delay(blockTimeMs);
 }
@@ -148,14 +169,15 @@ void wakeUpSystem()
   digitalWrite(wakePin, LOW);
 }
 
-void lockDoors(){
-  digitalWrite(doorsRelayPin1, HIGH);
-  digitalWrite(doorsRelayPin2, LOW);
+void lockDoors()
+{
+  digitalWrite(doorsRelayPin1, LOW);
+  digitalWrite(doorsRelayPin2, HIGH);
 
   delay(motorTimeMs);
 
-  digitalWrite(doorsRelayPin1, HIGH);
-  digitalWrite(doorsRelayPin2, HIGH);
+  digitalWrite(doorsRelayPin1, LOW);
+  digitalWrite(doorsRelayPin2, LOW);
 
   Serial.println("ld");
   doorsLocked = true;
@@ -163,15 +185,22 @@ void lockDoors(){
   delay(blockTimeMs);
 }
 
-void checkSerial(){
-  if (Serial.available() > 0) {
+void checkSerial()
+{
+  if (Serial.available() > 0)
+  {
     String data = Serial.readStringUntil('\n');
 
-    if (data == "ld") {
+    if (data == "ld")
+    {
       lockDoors();
-    } else if (data == "ud") {
+    }
+    else if (data == "ud")
+    {
       unlockDoors();
-    } else if (data == "ut") {
+    }
+    else if (data == "ut")
+    {
       unlockTrunk();
     }
   }
@@ -181,48 +210,59 @@ bool lastTrunkUnlockVal;
 bool lastDoorUnlockVal;
 bool lastDoorLockVal;
 
-void checkTrunkUnlockPin() {
+void checkTrunkUnlockPin()
+{
   bool trunkUnlockVal = digitalRead(trunkUnlockPin);
 
-  if (lastTrunkUnlockVal != trunkUnlockVal) {
+  if (lastTrunkUnlockVal != trunkUnlockVal)
+  {
     lastTrunkUnlockVal = trunkUnlockVal;
     onTrunkUnlockChanged(trunkUnlockVal);
   }
 }
 
-void checkDoorUnlockPin() {
+void checkDoorUnlockPin()
+{
   bool doorUnlockVal = digitalRead(doorUnlockPin);
 
-  if (lastDoorUnlockVal != doorUnlockVal) {
+  if (lastDoorUnlockVal != doorUnlockVal)
+  {
     lastDoorUnlockVal = doorUnlockVal;
     onDoorUnlockChanged(doorUnlockVal);
   }
 }
 
-void checkDoorLockPin() {
+void checkDoorLockPin()
+{
   bool doorLockVal = digitalRead(doorLockPin);
 
-  if (lastDoorLockVal != doorLockVal) {
+  if (lastDoorLockVal != doorLockVal)
+  {
     lastDoorLockVal = doorLockVal;
     onDoorLockChanged(doorLockVal);
   }
 }
 
-
-void onTrunkUnlockChanged(bool val){
-  if(!val){
+void onTrunkUnlockChanged(bool val)
+{
+  if (!val)
+  {
     unlockTrunk();
   }
 }
 
-void onDoorUnlockChanged(bool val){
- if(val){
+void onDoorUnlockChanged(bool val)
+{
+  if (val)
+  {
     unlockDoors();
   }
 }
 
-void onDoorLockChanged(bool val){
-if(val){
+void onDoorLockChanged(bool val)
+{
+  if (val)
+  {
     lockDoors();
   }
 }
