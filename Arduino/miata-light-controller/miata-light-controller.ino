@@ -1,8 +1,7 @@
 #include <EEPROM.h>
 
 #define buttonPin 3 // analog input pin to use as a digital input
-#define drlCheckPin 2
-#define lightCheckPin 4
+#define lightCheckPin 2
 #define leftup 11   // digital output pin for left headlight up
 #define rightup 6   // digital output pin for right headlight up
 #define leftdown 12 // digital output pin for left headlight down
@@ -19,10 +18,8 @@ bool ledVal = false; // state of headlight power
 
 bool waving;
 
-bool drlOn;
 bool lightOn;
 
-bool lastDrlVal;
 bool lastLightVal;
 bool lastButtonVal;
 bool lastStableButtonState = false;
@@ -35,7 +32,6 @@ void setup()
   Serial.begin(9600);
   // Set button input pin
   pinMode(buttonPin, INPUT);
-  pinMode(drlCheckPin, INPUT);
   pinMode(lightCheckPin, INPUT);
   digitalWrite(buttonPin, HIGH);
 
@@ -64,7 +60,6 @@ void loop()
     toggle();
   }
 
-  drlOn = checkDRL();
   lightOn = checkLight();
 
   if (Serial.available() > 0)
@@ -436,21 +431,9 @@ bool checkButton() {
   return stateChanged;
 }
 
-bool checkDRL()
-{
-  bool drlVal = digitalRead(drlCheckPin);
-
-  if (lastDrlVal != drlVal)
-  {
-    lastDrlVal = drlVal;
-    onDrlStateChanged(drlVal);
-  }
-  return drlVal;
-}
-
 bool checkLight()
 {
-  bool lightVal = !digitalRead(drlCheckPin); //Input is inverted
+  bool lightVal = !digitalRead(lightCheckPin); //Input is inverted
 
   if (lastLightVal != lightVal)
   {
@@ -458,19 +441,6 @@ bool checkLight()
     onLightStateChanged(lightVal);
   }
   return lightVal;
-}
-
-void onDrlStateChanged(bool val)
-{
-  if (val)
-  {
-    up();
-    Serial.println("drle");
-  }
-  else
-  {
-    Serial.println("drld");
-  }
 }
 
 void onLightStateChanged(bool val)
