@@ -11,7 +11,7 @@
 #define rightStateAddr 1
 #define valAddr 2
 
-const unsigned long DEBOUNCE_DELAY = 100;  // Debounce time in milliseconds
+const unsigned long DEBOUNCE_DELAY = 100; // Debounce time in milliseconds
 
 // power variable
 bool ledVal = false; // state of headlight power
@@ -34,8 +34,12 @@ void setup()
   pinMode(buttonPin, INPUT);
   pinMode(lightCheckPin, INPUT);
   digitalWrite(buttonPin, HIGH);
+  digitalWrite(lightCheckPin, HIGH);
 
   lastButtonVal = digitalRead(buttonPin);
+  lastStableButtonState = lastButtonVal;
+
+  lastLightVal = !digitalRead(lightCheckPin);
 
   pinMode(leftup, OUTPUT);
   digitalWrite(leftup, ledVal);
@@ -382,6 +386,9 @@ void sendStates()
   {
     Serial.println("rd");
   }
+
+  lastLightVal = !digitalRead(lightCheckPin);
+  onLightStateChanged(lastLightVal);
 }
 
 void sendRightSleepyPos(bool rightUp)
@@ -408,32 +415,36 @@ void sendLeftSleepyPos(bool leftUp)
   }
 }
 
-bool checkButton() {
+bool checkButton()
+{
   bool buttonVal = digitalRead(buttonPin);
   bool stateChanged = false;
-  
+
   // If the button state changed
-  if (buttonVal != lastButtonVal) {
+  if (buttonVal != lastButtonVal)
+  {
     // Reset the debounce timer
     lastDebounceTime = millis();
   }
-  
+
   // Check if enough time has passed since the last state change
-  if ((millis() - lastDebounceTime) > DEBOUNCE_DELAY) {
+  if ((millis() - lastDebounceTime) > DEBOUNCE_DELAY)
+  {
     // If the button state is different from the last stable state
-    if (buttonVal != lastStableButtonState) {
+    if (buttonVal != lastStableButtonState)
+    {
       lastStableButtonState = buttonVal;
       stateChanged = true;
     }
   }
-  
+
   lastButtonVal = buttonVal;
   return stateChanged;
 }
 
 bool checkLight()
 {
-  bool lightVal = !digitalRead(lightCheckPin); //Input is inverted
+  bool lightVal = !digitalRead(lightCheckPin);
 
   if (lastLightVal != lightVal)
   {
@@ -447,12 +458,11 @@ void onLightStateChanged(bool val)
 {
   if (val)
   {
-    up();
     Serial.println("lie");
+    up();
   }
   else
   {
     Serial.println("lid");
   }
 }
-
